@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPAGO - Propuesta UX/UI: Selección Inteligente de Cuentas</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+          colors: {
+            upago: {
+              navy: '#192a3e',
+              blue: '#3b82f6',
+              darkBlue: '#2563eb',
+              lightBlue: '#dbeafe',
+              sidebar: '#16191f',
+              green: '#10b981',
+              accentGreen: '#34d399',
+              tableHeader: '#f8fafc',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbar and subtle transitions */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .stepper-clip-1 {
+      clip-path: polygon(0% 0%, 93% 0%, 100% 50%, 93% 100%, 0% 100%);
+    }
+    .stepper-clip-2 {
+      clip-path: polygon(0% 0%, 93% 0%, 100% 50%, 93% 100%, 0% 100%, 7% 50%);
+    }
+    .stepper-clip-3 {
+      clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 7% 50%);
+    }
+    @media (max-width: 768px) {
+      .stepper-clip-1, .stepper-clip-2, .stepper-clip-3 {
+        clip-path: none;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans antialiased min-h-screen flex flex-col">
+
+  <!-- Top Bar: Herramienta de Demostración UX para Producto -->
+  <aside class="bg-slate-900 border-b border-slate-800 text-white px-4 py-2.5 text-xs flex flex-wrap items-center justify-between gap-3 shadow-md z-50 sticky top-0">
+    <div class="flex items-center gap-2">
+      <span class="bg-blue-600 text-white font-bold px-2 py-0.5 rounded text-[10px] tracking-wide uppercase">Propuesta UX/UI</span>
+      <span class="font-medium text-slate-200">Requerimiento: Agrandar Flecha Portal / Selección de Cuentas</span>
+      <span class="text-slate-400 hidden sm:inline">| Portal Transversal Multi-Institución & Empresas</span>
+    </div>
+
+    <!-- Toggle de Vistas: Antes vs Después -->
+    <div class="flex items-center gap-2 bg-slate-800 p-1 rounded-lg border border-slate-700">
+      <button id="viewBeforeBtn" onclick="setMode('before')" class="px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5">
+        <i class="fa-solid fa-clock-rotate-left"></i>
+        <span>Diseño Actual (Problema)</span>
+      </button>
+      <button id="viewAfterBtn" onclick="setMode('after')" class="px-2.5 py-1 rounded text-xs font-semibold bg-blue-600 text-white shadow-sm transition flex items-center gap-1.5">
+        <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i>
+        <span>Propuesta Optimizada UX</span>
+      </button>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button onclick="toggleRationaleModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 px-3 py-1 rounded text-xs font-medium flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-lightbulb text-amber-400"></i>
+        <span>Justificación de Diseño</span>
+      </button>
+    </div>
+  </aside>
+
+  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+    
+    <!-- SIDEBAR UPAGO (Identical to original production capture) -->
+    <nav aria-label="Menú principal de UPAGO" class="w-full lg:w-64 bg-[#181a1f] text-gray-300 flex-shrink-0 flex flex-col justify-between p-5 border-r border-gray-800">
+      <div>
+        <!-- UPAGO Logo Header -->
+        <div class="flex items-center justify-between pb-6 border-b border-gray-800/80">
+          <div class="flex items-center gap-1.5">
+            <span class="text-2xl font-black tracking-tight text-white flex items-center">
+              <span class="text-sky-400 font-extrabold mr-0.5 text-3xl">U</span>PAGO
+            </span>
+          </div>
+          <button class="text-gray-400 hover:text-white text-lg p-1" title="Cerrar menú">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="mt-6">
+          <span class="text-[11px] font-bold tracking-wider text-sky-400 uppercase block mb-4">
+            Beneficios de tener cuenta
+          </span>
+
+          <ul class="space-y-3.5 text-xs text-gray-300 font-normal">
+            <li class="flex items-center gap-3 hover:text-white cursor-pointer transition p-1.5 rounded hover:bg-gray-800/40">
+              <i class="fa-solid fa-file-invoice text-emerald-400 text-sm w-4"></i>
+              <span>Consultar historial de pagos</span>
+            </li>
+            <li class="flex items-center gap-3 hover:text-white cursor-pointer transition p-1.5 rounded hover:bg-gray-800/40">
+              <i class="fa-solid fa-credit-card text-emerald-400 text-sm w-4"></i>
+              <span>Asociar o desvincular pagos</span>
+            </li>
+            <li class="flex items-center gap-3 hover:text-white cursor-pointer transition p-1.5 rounded hover:bg-gray-800/40">
+              <i class="fa-solid fa-receipt text-emerald-400 text-sm w-4"></i>
+              <span>Configuración de PAT/PAC</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-gray-800/80">
+        <button class="w-full bg-[#5eb380] hover:bg-[#4ea270] text-white font-medium py-2.5 px-4 rounded text-xs flex items-center justify-center gap-2 shadow-sm transition">
+          <i class="fa-solid fa-arrow-right-to-bracket"></i>
+          <span>Iniciar sesión</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- MAIN CHECKOUT WORKSPACE -->
+    <main class="flex-1 flex flex-col bg-white overflow-y-auto">
+      
+      <!-- Top Institution & Customer Bar -->
+      <header class="border-b border-gray-200 px-6 py-4 flex flex-wrap items-center justify-between gap-4 bg-white">
+        <div class="flex items-center gap-4">
+          <!-- Institution Generic Logo / Icon -->
+          <div class="w-12 h-12 rounded border border-gray-200 p-1 flex items-center justify-center shadow-xs bg-white">
+            <div class="w-full h-full bg-gradient-to-br from-blue-700 to-slate-900 rounded flex flex-col items-center justify-center text-white">
+              <i class="fa-solid fa-building text-base"></i>
+            </div>
+          </div>
+          <div>
+            <div class="text-xs font-extrabold tracking-wider text-slate-800 uppercase flex items-center gap-1.5">
+              <span>NOMBRE DE LA INSTITUCIÓN</span>
+            </div>
+            <div class="text-[10px] text-gray-500 font-semibold tracking-widest uppercase">
+              PORTAL DE RECAUDACIÓN Y PAGOS EN LÍNEA
+            </div>
+          </div>
+
+          <div class="h-8 w-px bg-gray-300 mx-2 hidden sm:block"></div>
+
+          <!-- Customer info -->
+          <div class="text-xs">
+            <p class="font-bold text-sky-700 tracking-wide">RAZÓN SOCIAL / CLIENTE REGISTRADO</p>
+            <p class="text-emerald-600 font-medium text-[11px]">76.543.210-K</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="text-right text-xs">
+            <span class="text-gray-500 text-[11px] block">Bienvenida/o</span>
+          </div>
+          <button class="border border-emerald-500 text-emerald-600 hover:bg-emerald-50 text-xs px-3 py-1.5 rounded-full font-medium flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-power-off text-[10px]"></i>
+            <span>Cancelar Operación</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Flow Stepper Bar (UPAGO Native Chevron Ribbon) -->
+      <section aria-label="Progreso del proceso de pago" class="px-6 py-3.5 bg-slate-50 border-b border-gray-200">
+        <div class="max-w-6xl mx-auto">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-0 font-medium text-xs rounded overflow-hidden shadow-xs">
+            <!-- Step 1: Active -->
+            <div class="bg-[#3b75e3] text-white py-2.5 px-6 flex items-center gap-2.5 font-semibold stepper-clip-1">
+              <span class="w-5 h-5 rounded-full bg-white text-[#3b75e3] flex items-center justify-center text-[11px] font-bold">1</span>
+              <span>Selecciona Cuentas a Pagar</span>
+            </div>
+
+            <!-- Step 2: Next -->
+            <div class="bg-[#9bb6e8] text-slate-800/80 py-2.5 px-6 flex items-center gap-2.5 stepper-clip-2">
+              <span class="text-slate-600 font-bold">2</span>
+              <span>Selecciona Medio de Pago</span>
+            </div>
+
+            <!-- Step 3: Confirmation -->
+            <div class="bg-[#b9cef2] text-slate-800/70 py-2.5 px-6 flex items-center gap-2.5 stepper-clip-3">
+              <span class="text-slate-600 font-bold">3</span>
+              <span>Recibe tu comprobante</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Payment Process Area -->
+      <section class="p-6 max-w-6xl mx-auto w-full flex-1">
+        
+        <!-- PROPOSAL BAR: Visible in 'after' mode for enhanced quick actions -->
+        <div id="optimizedBar" class="mb-4 bg-white p-3.5 rounded-xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5 mr-1">
+              <i class="fa-solid fa-bolt-lightning text-amber-500"></i>
+              <span>Selección rápida:</span>
+            </span>
+
+            <!-- Preset Chip: Vencidas (Primary intent of school parents) -->
+            <button onclick="selectExpiredOnly()" class="group px-3 py-1.5 rounded-full border border-red-200 bg-red-50/70 hover:bg-red-100/90 text-red-700 text-xs font-semibold transition flex items-center gap-1.5 shadow-2xs">
+              <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+              <span>Solo deudas vencidas</span>
+              <span class="bg-red-200/80 text-red-800 text-[10px] px-1.5 py-0.2 rounded-full font-bold">2</span>
+            </button>
+
+            <!-- Preset Chip: Todas -->
+            <button onclick="selectAllDebts(true)" class="px-3 py-1.5 rounded-full border border-slate-300 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-medium transition flex items-center gap-1.5">
+              <i class="fa-regular fa-square-check text-slate-500"></i>
+              <span>Seleccionar todas</span>
+              <span class="bg-slate-200 text-slate-700 text-[10px] px-1.5 py-0.2 rounded-full font-bold">6</span>
+            </button>
+
+            <!-- Clear selection -->
+            <button id="clearSelectionBtn" onclick="clearAllSelections()" class="px-2.5 py-1.5 rounded-full text-slate-500 hover:text-red-600 hover:bg-slate-100 text-xs font-medium transition hidden">
+              <i class="fa-solid fa-arrow-rotate-left mr-1"></i> Limpiar
+            </button>
+          </div>
+
+          <!-- Selection status summary indicator -->
+          <div class="text-xs text-slate-500 font-medium flex items-center gap-2">
+            <span id="selectedSummaryBadge" class="bg-blue-50 text-blue-700 border border-blue-100 font-semibold px-2 py-0.5 rounded-md text-[11px]">
+              0 seleccionadas
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- TABLE COLUMN (9 cols on lg) -->
+          <div class="lg:col-span-8 bg-white border border-gray-200 rounded-xl shadow-xs overflow-visible">
+            
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs border-collapse">
+                
+                <!-- TABLE HEADER -->
+                <thead class="bg-slate-50 border-b border-gray-200 text-slate-700 font-bold select-none relative">
+                  <tr>
+                    <!-- Expansion col -->
+                    <th class="py-3 px-3 w-10 text-center text-slate-400"></th>
+
+                    <!-- Checkbox / Master Select Column -->
+                    <th class="py-3 px-2 w-12 text-center relative">
+                      
+                      <!-- MODE 'BEFORE': Simple checkbox + Tiny arrow next to header -->
+                      <div id="beforeMasterHeader" class="hidden">
+                        <span class="text-gray-400 text-xs">#</span>
+                      </div>
+
+                      <!-- MODE 'AFTER': Modern Master Checkbox with Dropdown Indicator -->
+                      <div id="afterMasterHeader" class="flex items-center justify-center">
+                        <div class="relative inline-block text-left">
+                          <div class="flex items-center gap-1 group">
+                            <input 
+                              type="checkbox" 
+                              id="masterCheckbox"
+                              onchange="toggleMasterCheckbox(this.checked)"
+                              class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer transition"
+                              title="Seleccionar o deseleccionar todo"
+                            >
+                            <button 
+                              type="button"
+                              onclick="toggleMasterDropdown(event)" 
+                              class="text-slate-400 hover:text-blue-600 p-0.5 rounded transition"
+                              title="Opciones de selección masiva"
+                            >
+                              <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                            </button>
+                          </div>
+
+                          <!-- Master Dropdown Menu (Pop-up orgánico moderno) -->
+                          <div id="masterDropdown" class="hidden absolute left-0 mt-2 w-52 bg-white rounded-lg shadow-xl border border-slate-200 py-1.5 z-40 text-xs text-slate-700 animate-in fade-in zoom-in-95 duration-100">
+                            <div class="px-3 py-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                              Selección inteligente
+                            </div>
+                            <button onclick="selectExpiredOnly(); hideMasterDropdown();" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between text-red-700 font-medium transition">
+                              <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-triangle-exclamation text-xs text-red-500"></i>
+                                Solo deudas vencidas
+                              </span>
+                              <span class="text-[10px] bg-red-100 text-red-800 font-bold px-1.5 py-0.5 rounded">2</span>
+                            </button>
+                            <button onclick="selectAllDebts(true); hideMasterDropdown();" class="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center justify-between text-slate-700 font-medium transition">
+                              <span class="flex items-center gap-2">
+                                <i class="fa-solid fa-list-check text-xs text-blue-500"></i>
+                                Seleccionar todas
+                              </span>
+                              <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded">6</span>
+                            </button>
+                            <div class="h-px bg-slate-100 my-1"></div>
+                            <button onclick="clearAllSelections(); hideMasterDropdown();" class="w-full text-left px-3 py-1.5 hover:bg-slate-50 text-slate-500 flex items-center gap-2 transition">
+                              <i class="fa-solid fa-arrow-rotate-left text-xs"></i>
+                              Desmarcar todo
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+
+                    </th>
+
+                    <!-- FECHA VENCIMIENTO COLUMN (THE CORE FOCAL POINT) -->
+                    <th class="py-3 px-3 min-w-[140px] relative">
+                      
+                      <!-- 'BEFORE' SCENARIO: The miniature confusing arrow with abrupt popover -->
+                      <div id="beforeHeaderContent" class="hidden">
+                        <div class="flex flex-col items-center justify-center text-center cursor-pointer select-none">
+                          <span class="font-bold text-black text-xs leading-tight">Fecha</span>
+                          <div class="flex items-center gap-1.5">
+                            <!-- The tiny blue arrow being reported -->
+                            <button 
+                              id="legacyArrowBtn"
+                              onclick="toggleLegacyMenu(event)" 
+                              class="text-blue-600 hover:text-blue-800 p-0.5 transition"
+                              title="Click para ver menú actual"
+                            >
+                              <i class="fa-solid fa-caret-down text-[12px]"></i>
+                            </button>
+                            <span class="font-bold text-black text-xs leading-tight">Vencimiento</span>
+                          </div>
+                        </div>
+
+                        <!-- LEGACY POPOVER (Replicated exactly from image (1).png) -->
+                        <div id="legacyMenu" class="hidden absolute top-full left-4 mt-1 bg-white border-2 border-sky-400 p-3 shadow-lg z-30 w-44 text-left">
+                          <button onclick="selectAllDebts(true); toggleLegacyMenu();" class="text-sky-600 hover:underline text-[11px] block font-medium mb-3 text-left w-full">
+                            Seleccionar todas las deudas
+                          </button>
+                          <button onclick="selectExpiredOnly(); toggleLegacyMenu();" class="text-sky-600 hover:underline text-[11px] block font-medium text-left w-full">
+                            Seleccionar deudas vencidas
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- 'AFTER' SCENARIO: Clean, standard sortable column header without bogus popovers -->
+                      <div id="afterHeaderContent" class="flex items-center gap-1.5 text-slate-800">
+                        <span class="font-bold">Fecha Vencimiento</span>
+                        <span class="text-slate-400 text-[10px]" title="Orden cronológico por defecto">
+                          <i class="fa-solid fa-arrow-down-short-wide"></i>
+                        </span>
+                      </div>
+                    </th>
+
+                    <!-- Identificación Column -->
+                    <th class="py-3 px-4 min-w-[200px] text-slate-800 font-bold">
+                      Identificación
+                    </th>
+
+                    <!-- Monto Deuda Column -->
+                    <th class="py-3 px-4 text-right min-w-[120px] text-slate-800 font-bold">
+                      Monto deuda
+                    </th>
+                  </tr>
+                </thead>
+
+                <!-- TABLE BODY ROWS -->
+                <tbody id="debtsTableBody" class="divide-y divide-gray-100">
+                  <!-- Generated via JavaScript for interactivity -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Table Footer note -->
+            <div class="px-4 py-2.5 bg-slate-50 border-t border-gray-100 text-[11px] text-slate-500 flex flex-wrap items-center justify-between gap-2">
+              <span class="flex items-center gap-1.5">
+                <i class="fa-solid fa-shield-halved text-emerald-600"></i>
+                <span>Transacción segura y encriptada mediante UPAGO</span>
+              </span>
+              <span class="text-slate-400">Mostrando 6 obligaciones del cliente o usuario</span>
+            </div>
+          </div>
+
+          <!-- RIGHT PANEL (Summary & CTAs) -->
+          <div class="lg:col-span-4 space-y-4">
+            
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-xs">
+              
+              <!-- Selected count counter -->
+              <div class="pb-4 border-b border-gray-100 flex items-center justify-between">
+                <span class="text-sm font-bold text-slate-800">Cuentas a pagar:</span>
+                <span id="selectedCountText" class="text-xl font-extrabold text-blue-600">0</span>
+              </div>
+
+              <!-- Total amount breakdown -->
+              <div class="py-4 space-y-2 text-xs">
+                <div class="flex items-center justify-between text-slate-600">
+                  <span>Subtotal seleccionado:</span>
+                  <span id="subtotalText" class="font-semibold text-slate-800">$0</span>
+                </div>
+                <div class="flex items-center justify-between text-slate-600">
+                  <span>Comisión por servicio:</span>
+                  <span class="text-emerald-600 font-medium">$0 (Gratis)</span>
+                </div>
+                <div class="pt-2 border-t border-gray-100 flex items-center justify-between text-sm font-bold text-slate-900">
+                  <span>Total a pagar:</span>
+                  <span id="totalText" class="text-lg font-black text-slate-900">$0</span>
+                </div>
+              </div>
+
+              <!-- Action buttons matching original layout -->
+              <div class="space-y-2.5 pt-2">
+                <!-- Pagar Button -->
+                <button 
+                  id="payButton"
+                  disabled
+                  onclick="triggerPaymentSimulation()"
+                  class="w-full py-3 px-4 rounded-lg font-bold text-sm text-white bg-blue-300 cursor-not-allowed transition flex items-center justify-center gap-2 shadow-sm"
+                >
+                  <i class="fa-solid fa-lock text-xs"></i>
+                  <span>Pagar</span>
+                </button>
+
+                <!-- Cancelar Button -->
+                <button class="w-full py-2 px-4 rounded-lg font-medium text-xs text-red-600 border border-red-300 hover:bg-red-50 transition">
+                  Cancelar
+                </button>
+
+                <!-- PAT/PAC Subscription -->
+                <button class="w-full py-2.5 px-4 rounded-lg font-medium text-xs text-emerald-700 border border-emerald-500 hover:bg-emerald-50 transition flex items-center justify-center gap-1.5">
+                  <i class="fa-solid fa-rotate text-emerald-600"></i>
+                  <span>Suscribir a Pago Automático</span>
+                </button>
+              </div>
+
+              <div class="mt-4 pt-3 border-t border-gray-100 text-center">
+                <p class="text-[10px] text-gray-400">
+                  Medios disponibles: BancoEstado, MACH, Tarjetas Débito / Crédito
+                </p>
+              </div>
+            </div>
+
+            <!-- Information Card for Customers & Users -->
+            <div class="bg-blue-50/70 border border-blue-100 rounded-xl p-4 text-xs text-blue-900">
+              <h4 class="font-bold flex items-center gap-1.5 text-blue-950 mb-1">
+                <i class="fa-solid fa-circle-question text-blue-600"></i>
+                <span>¿Dudas sobre tus cuentas o servicios?</span>
+              </h4>
+              <p class="text-[11px] text-blue-800/90 leading-relaxed">
+                Puedes pagar las obligaciones vencidas prioritariamente para evitar recargos e interrupciones en el servicio, o seleccionar todas las cuentas del período en una sola transacción.
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: JUSTIFICACIÓN DE DISEÑO UX / UI PARA REUNIÓN DE PRODUCTO -->
+  <div id="rationaleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 overflow-hidden max-h-[90vh] flex flex-col animate-in fade-in zoom-in-95 duration-150">
+      
+      <!-- Modal Header -->
+      <div class="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white">
+            <i class="fa-solid fa-compass-drafting text-sm"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sm">Propuesta UX/UI: Diagnóstico y Solución Transversal</h3>
+            <p class="text-[11px] text-slate-300">Argumentario técnico para presentar en Producto UPAGO</p>
+          </div>
+        </div>
+        <button onclick="toggleRationaleModal()" class="text-slate-400 hover:text-white text-lg p-1">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4 overflow-y-auto text-xs text-slate-700 leading-relaxed">
+        
+        <!-- Hallazgo clave -->
+        <div class="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-lg">
+          <h4 class="font-bold text-amber-900 mb-0.5">El Problema de Fondo (Más allá de agrandar la flecha)</h4>
+          <p class="text-amber-800">
+            En la reunión de producto se solicitó: <em>"Agrandar Flecha en el portal (Fecha de vencimiento)"</em> porque los usuarios y clientes no la detectaban. Sin embargo, en UX esto corresponde a un **error de modelo mental**: una flecha hacia abajo en el encabezado de una columna comunica **"Ordenar ascendente/descendente"**, jamás **"Selección múltiple de cuentas"**. Agrandar la flecha solo magnificaría un antipatrón.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+          
+          <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50">
+            <h5 class="font-bold text-slate-900 text-xs flex items-center gap-1.5 mb-2 text-red-600">
+              <i class="fa-solid fa-circle-xmark"></i>
+              Diseño Anterior (Antipatrón)
+            </h5>
+            <ul class="space-y-1.5 text-[11px] text-slate-600">
+              <li>• <strong>Ley de Fitts:</strong> Objetivo diminuto (8x8px) casi imposible de pulsar en pantallas táctiles o dispositivos móviles.</li>
+              <li>• <strong>Ubicación desalineada:</strong> La flecha residía en la etiqueta de "Fecha", lejos de la columna de checkboxes de selección.</li>
+              <li>• <strong>Menú superpuesto invasivo:</strong> Ocultaba la primera fila de datos y carecía de jerarquía visual.</li>
+            </ul>
+          </div>
+
+          <div class="border border-blue-200 rounded-xl p-3.5 bg-blue-50/50">
+            <h5 class="font-bold text-slate-900 text-xs flex items-center gap-1.5 mb-2 text-blue-700">
+              <i class="fa-solid fa-circle-check"></i>
+              Propuesta Optimizada (Orgánica)
+            </h5>
+            <ul class="space-y-1.5 text-[11px] text-slate-600">
+              <li>• <strong>Chips de Selección Rápida:</strong> Acceso inmediato <em>"Solo deudas vencidas (2)"</em> que resuelve más del 80% de las intenciones de pago en portales de recaudación.</li>
+              <li>• <strong>Master Checkbox estándar:</strong> Ubicado directamente en la cabecera de selección, con estado indeterminado (-) y opciones contextuales.</li>
+              <li>• <strong>Diferenciación visual:</strong> Badges cromáticos limpios para cuentas "Vencidas" vs "Al día".</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <div class="border-t border-slate-100 pt-3">
+          <h4 class="font-bold text-slate-900 mb-1">Impacto Técnico & Negocio:</h4>
+          <p class="text-slate-600 text-[11px]">
+            Solución 100% transversal y aplicable a cualquier institución cliente (educación, retail, salud, utilities, transporte o servicios B2B). No requiere cambios en la base de datos ni en los contratos de integración (API 1.1 / 1.3 / 1.5). Es una mejora directa de Front-end / Checkout que reduce drásticamente el abandono del proceso de pago.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
+        <span class="text-[11px] text-slate-500 font-medium">UPAGO UX System • Portal Transversal</span>
+        <button onclick="toggleRationaleModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-1.5 rounded-lg text-xs transition">
+          Entendido, volver a la maqueta
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // Mock Data representing universal business invoices and service items
+    const debtsData = [
+      {
+        id: 1,
+        dueDate: "05/10/2026",
+        formattedDate: "05 Oct 2026",
+        title: "Factura N° 10420 - Servicio Mensual Base",
+        subTitle: "Servicios Recurrentes y Operación",
+        amount: 480000,
+        isExpired: true, // Vencida
+        daysLabel: "Vencida hace 16 días",
+        selected: false,
+        expanded: false
+      },
+      {
+        id: 2,
+        dueDate: "05/10/2026",
+        formattedDate: "05 Oct 2026",
+        title: "Cuota N° 08 - Mantención y Licenciamiento",
+        subTitle: "Plataforma Tecnológica y Soporte",
+        amount: 512000,
+        isExpired: true, // Vencida
+        daysLabel: "Vencida hace 16 días",
+        selected: false,
+        expanded: false
+      },
+      {
+        id: 3,
+        dueDate: "05/11/2026",
+        formattedDate: "05 Nov 2026",
+        title: "Factura N° 10485 - Servicio Mensual Base",
+        subTitle: "Servicios Recurrentes y Operación",
+        amount: 480000,
+        isExpired: false, // Próxima
+        daysLabel: "Vence en 14 días",
+        selected: false,
+        expanded: false
+      },
+      {
+        id: 4,
+        dueDate: "05/11/2026",
+        formattedDate: "05 Nov 2026",
+        title: "Cuota N° 09 - Mantención y Licenciamiento",
+        subTitle: "Plataforma Tecnológica y Soporte",
+        amount: 512000,
+        isExpired: false, // Próxima
+        daysLabel: "Vence en 14 días",
+        selected: false,
+        expanded: false
+      },
+      {
+        id: 5,
+        dueDate: "05/12/2026",
+        formattedDate: "05 Dic 2026",
+        title: "Factura N° 10560 - Servicio Mensual Base",
+        subTitle: "Servicios Recurrentes y Operación",
+        amount: 480000,
+        isExpired: false, // Próxima
+        daysLabel: "Vence en 44 días",
+        selected: false,
+        expanded: false
+      },
+      {
+        id: 6,
+        dueDate: "05/12/2026",
+        formattedDate: "05 Dic 2026",
+        title: "Cuota N° 10 - Mantención y Licenciamiento",
+        subTitle: "Plataforma Tecnológica y Soporte",
+        amount: 512000,
+        isExpired: false, // Próxima
+        daysLabel: "Vence en 44 días",
+        selected: false,
+        expanded: false
+      }
+    ];
+
+    // Current prototype mode: 'before' | 'after'
+    let currentMode = 'after';
+
+    // Format currency to Chilean CLP format ($480.000)
+    function formatCLP(value) {
+      return '$' + value.toLocaleString('es-CL');
+    }
+
+    function renderTableRows() {
+      const tbody = document.getElementById('debtsTableBody');
+      tbody.innerHTML = '';
+
+      debtsData.forEach(item => {
+        const isBefore = currentMode === 'before';
+        const tr = document.createElement('tr');
+        tr.className = `transition-colors duration-150 ${item.selected ? 'bg-blue-50/60' : 'hover:bg-slate-50/70'}`;
+        
+        tr.innerHTML = `
+          <!-- Plus / Expand detail button -->
+          <td class="py-3 px-3 text-center align-middle">
+            <button 
+              type="button" 
+              onclick="toggleRowExpand(${item.id})"
+              class="w-5 h-5 rounded-full border border-gray-300 hover:border-gray-500 text-gray-500 hover:text-gray-800 flex items-center justify-center text-[10px] transition"
+              title="Ver detalle del arancel"
+            >
+              <i class="fa-solid ${item.expanded ? 'fa-minus' : 'fa-plus'}"></i>
+            </button>
+          </td>
+
+          <!-- Item Checkbox -->
+          <td class="py-3 px-2 text-center align-middle">
+            <input 
+              type="checkbox" 
+              ${item.selected ? 'checked' : ''} 
+              onchange="toggleItemSelection(${item.id}, this.checked)"
+              class="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500 cursor-pointer transition"
+            >
+          </td>
+
+          <!-- Due Date column -->
+          <td class="py-3 px-3 align-middle font-medium text-slate-700 whitespace-nowrap">
+            <div class="flex items-center gap-2">
+              <span>${item.dueDate}</span>
+              ${!isBefore && item.isExpired ? `
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
+                  Vencida
+                </span>
+              ` : ''}
+              ${!isBefore && !item.isExpired ? `
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
+                  Al día
+                </span>
+              ` : ''}
+            </div>
+          </td>
+
+          <!-- Identification column -->
+          <td class="py-3 px-4 align-middle">
+            <div class="font-bold text-slate-900">${item.title}</div>
+            <div class="text-[11px] text-gray-500">${item.subTitle}</div>
+          </td>
+
+          <!-- Debt Amount column -->
+          <td class="py-3 px-4 text-right align-middle font-bold text-slate-900 whitespace-nowrap">
+            ${formatCLP(item.amount)}
+          </td>
+        `;
+
+        tbody.appendChild(tr);
+
+        // Expanded detail row if open
+        if (item.expanded) {
+          const detailTr = document.createElement('tr');
+          detailTr.className = 'bg-slate-50/90 text-xs border-y border-slate-100';
+          detailTr.innerHTML = `
+            <td colspan="5" class="px-10 py-3 text-slate-600">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-[11px]">
+                <div>
+                  <span class="text-slate-400 block font-medium">Concepto facturado:</span>
+                  <span class="font-semibold text-slate-800">Prestación de Servicios y Mensualidad Regular</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-medium">Estado del documento:</span>
+                  <span class="font-semibold ${item.isExpired ? 'text-red-600' : 'text-emerald-700'}">${item.daysLabel}</span>
+                </div>
+                <div>
+                  <span class="text-slate-400 block font-medium">Tipo de documento:</span>
+                  <span class="font-semibold text-slate-800">Documento Tributario Electrónico (DTE)</span>
+                </div>
+              </div>
+            </td>
+          `;
+          tbody.appendChild(detailTr);
+        }
+      });
+
+      updateCheckoutSummary();
+      updateMasterCheckboxState();
+    }
+
+    // Toggle individual debt item selection
+    function toggleItemSelection(id, checked) {
+      const item = debtsData.find(d => d.id === id);
+      if (item) {
+        item.selected = checked;
+        renderTableRows();
+      }
+    }
+
+    // Toggle row detail accordion
+    function toggleRowExpand(id) {
+      const item = debtsData.find(d => d.id === id);
+      if (item) {
+        item.expanded = !item.expanded;
+        renderTableRows();
+      }
+    }
+
+    // Action: Select All Debts
+    function selectAllDebts(status) {
+      debtsData.forEach(d => d.selected = status);
+      renderTableRows();
+    }
+
+    // Action: Select Expired Debts Only (Fulfills the core school use-case)
+    function selectExpiredOnly() {
+      debtsData.forEach(d => {
+        d.selected = d.isExpired;
+      });
+      renderTableRows();
+    }
+
+    // Action: Clear all selections
+    function clearAllSelections() {
+      debtsData.forEach(d => d.selected = false);
+      renderTableRows();
+    }
+
+    // Master checkbox toggle
+    function toggleMasterCheckbox(checked) {
+      selectAllDebts(checked);
+    }
+
+    // Synchronize Master Checkbox visual state (checked, indeterminate, unchecked)
+    function updateMasterCheckboxState() {
+      const masterCheckbox = document.getElementById('masterCheckbox');
+      if (!masterCheckbox) return;
+
+      const total = debtsData.length;
+      const selectedCount = debtsData.filter(d => d.selected).length;
+
+      if (selectedCount === 0) {
+        masterCheckbox.checked = false;
+        masterCheckbox.indeterminate = false;
+      } else if (selectedCount === total) {
+        masterCheckbox.checked = true;
+        masterCheckbox.indeterminate = false;
+      } else {
+        masterCheckbox.checked = false;
+        masterCheckbox.indeterminate = true;
+      }
+    }
+
+    // Update Right Panel Calculations (Count & Total sum)
+    function updateCheckoutSummary() {
+      const selected = debtsData.filter(d => d.selected);
+      const count = selected.length;
+      const totalAmount = selected.reduce((sum, item) => sum + item.amount, 0);
+
+      document.getElementById('selectedCountText').textContent = count;
+      document.getElementById('subtotalText').textContent = formatCLP(totalAmount);
+      document.getElementById('totalText').textContent = formatCLP(totalAmount);
+
+      const payBtn = document.getElementById('payButton');
+      const clearBtn = document.getElementById('clearSelectionBtn');
+      const badge = document.getElementById('selectedSummaryBadge');
+
+      if (count > 0) {
+        payBtn.disabled = false;
+        payBtn.className = "w-full py-3 px-4 rounded-lg font-bold text-sm text-white bg-blue-600 hover:bg-blue-700 cursor-pointer shadow-md transition transform active:scale-98 flex items-center justify-center gap-2";
+        if (clearBtn) clearBtn.classList.remove('hidden');
+        if (badge) {
+          badge.textContent = `${count} de ${debtsData.length} seleccionadas (${formatCLP(totalAmount)})`;
+          badge.className = "bg-blue-100/80 text-blue-800 border border-blue-200 font-bold px-2 py-0.5 rounded-md text-[11px]";
+        }
+      } else {
+        payBtn.disabled = true;
+        payBtn.className = "w-full py-3 px-4 rounded-lg font-bold text-sm text-white bg-blue-300 cursor-not-allowed transition flex items-center justify-center gap-2 shadow-xs";
+        if (clearBtn) clearBtn.classList.add('hidden');
+        if (badge) {
+          badge.textContent = "0 seleccionadas";
+          badge.className = "bg-slate-100 text-slate-600 border border-slate-200 font-semibold px-2 py-0.5 rounded-md text-[11px]";
+        }
+      }
+    }
+
+    // Mode switcher: 'before' vs 'after'
+    function setMode(mode) {
+      currentMode = mode;
+      const beforeBtn = document.getElementById('viewBeforeBtn');
+      const afterBtn = document.getElementById('viewAfterBtn');
+      const optimizedBar = document.getElementById('optimizedBar');
+
+      const beforeHeader = document.getElementById('beforeHeaderContent');
+      const afterHeader = document.getElementById('afterHeaderContent');
+      const beforeMaster = document.getElementById('beforeMasterHeader');
+      const afterMaster = document.getElementById('afterMasterHeader');
+
+      if (mode === 'before') {
+        // UI styling for Before
+        beforeBtn.className = "px-2.5 py-1 rounded text-xs font-semibold bg-red-600 text-white shadow-xs transition flex items-center gap-1.5";
+        afterBtn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5";
+
+        optimizedBar.classList.add('hidden');
+        beforeHeader.classList.remove('hidden');
+        afterHeader.classList.add('hidden');
+        beforeMaster.classList.remove('hidden');
+        afterMaster.classList.add('hidden');
+      } else {
+        // UI styling for After
+        afterBtn.className = "px-2.5 py-1 rounded text-xs font-semibold bg-blue-600 text-white shadow-xs transition flex items-center gap-1.5";
+        beforeBtn.className = "px-2.5 py-1 rounded text-xs font-medium text-slate-400 hover:text-white transition flex items-center gap-1.5";
+
+        optimizedBar.classList.remove('hidden');
+        beforeHeader.classList.add('hidden');
+        afterHeader.classList.remove('hidden');
+        beforeMaster.classList.add('hidden');
+        afterMaster.classList.remove('hidden');
+      }
+
+      renderTableRows();
+    }
+
+    // Toggle legacy menu (Before mode)
+    function toggleLegacyMenu(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('legacyMenu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Toggle modern Master Checkbox dropdown (After mode)
+    function toggleMasterDropdown(e) {
+      if (e) e.stopPropagation();
+      const menu = document.getElementById('masterDropdown');
+      menu.classList.toggle('hidden');
+    }
+
+    function hideMasterDropdown() {
+      const menu = document.getElementById('masterDropdown');
+      if (menu) menu.classList.add('hidden');
+    }
+
+    // Toggle UX Rationale Modal
+    function toggleRationaleModal() {
+      const modal = document.getElementById('rationaleModal');
+      modal.classList.toggle('hidden');
+    }
+
+    // Payment simulation feedback (No alert)
+    function triggerPaymentSimulation() {
+      const count = debtsData.filter(d => d.selected).length;
+      const totalAmount = debtsData.filter(d => d.selected).reduce((sum, item) => sum + item.amount, 0);
+
+      // Create a floating friendly notification toast
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3.5 rounded-xl shadow-2xl border border-slate-700 flex items-center gap-3 z-50 text-xs animate-in slide-in-from-bottom duration-200';
+      toast.innerHTML = `
+        <div class="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center text-sm font-bold">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <div>
+          <p class="font-bold text-slate-100">Transición a Paso 2 (Medio de Pago)</p>
+          <p class="text-slate-400">Procesando ${count} cuentas por ${formatCLP(totalAmount)} con API 1.5</p>
+        </div>
+      `;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3500);
+    }
+
+    // Global click listener to close popovers when clicking outside
+    document.addEventListener('click', (e) => {
+      const legacyMenu = document.getElementById('legacyMenu');
+      const legacyBtn = document.getElementById('legacyArrowBtn');
+      if (legacyMenu && !legacyMenu.contains(e.target) && e.target !== legacyBtn && !legacyBtn?.contains(e.target)) {
+        legacyMenu.classList.add('hidden');
+      }
+
+      const masterDropdown = document.getElementById('masterDropdown');
+      if (masterDropdown && !masterDropdown.contains(e.target)) {
+        masterDropdown.classList.add('hidden');
+      }
+    });
+
+    // Initial setup on load
+    window.onload = function() {
+      setMode('after');
+    };
+  </script>
+</body>
+</html>
